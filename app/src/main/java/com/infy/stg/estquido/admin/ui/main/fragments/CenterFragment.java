@@ -15,8 +15,6 @@ import android.view.ViewGroup;
 
 import com.infy.stg.estquido.admin.R;
 import com.infy.stg.estquido.admin.app.This;
-import com.infy.stg.estquido.admin.ui.main.fragments.dummy.DummyContent;
-import com.infy.stg.estquido.admin.ui.main.fragments.dummy.DummyContent.DummyItem;
 
 import java.util.Map;
 

@@ -1,13 +1,8 @@
 package com.infy.stg.estquido.admin.ui.main;
 
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.Manifest;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 
 import com.android.volley.VolleyError;
 import com.couchbase.lite.CouchbaseLiteException;
@@ -19,14 +14,21 @@ import com.couchbase.lite.ResultSet;
 import com.couchbase.lite.SelectResult;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.snackbar.Snackbar;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import android.util.Log;
+import android.view.View;
+
 import com.infy.stg.estquido.admin.R;
 import com.infy.stg.estquido.admin.app.This;
 import com.infy.stg.estquido.admin.app.services.CBLService;
 import com.infy.stg.estquido.admin.app.services.CBRestService;
 import com.infy.stg.estquido.admin.ui.main.fragments.CenterFragment;
-import com.infy.stg.estquido.admin.ui.main.fragments.dummy.DummyContent;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -34,22 +36,31 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
+public class CentersActivity extends AppCompatActivity  implements CenterFragment.OnListFragmentInteractionListener {
 
-public class MainActivity extends AppCompatActivity implements CenterFragment.OnListFragmentInteractionListener {
-
-    private static final String TAG = MainActivity.class.getName();
+    private static final String TAG = CentersActivity.class.getName();
     private FusedLocationProviderClient mFusedLocationClient;
-    private Location location;
     private String center;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_activity);
+        setContentView(R.layout.activity_centers);
+        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+                        .setAction("Action", null).show();
+            }
+        });
 
         This.CONTEXT.set(getApplicationContext());
         This.APPLICATION.set(getApplication());
-        This.MAIN_ACTIVITY.set(this);
+//        This.MAIN_ACTIVITY.set(this);
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
@@ -65,9 +76,9 @@ public class MainActivity extends AppCompatActivity implements CenterFragment.On
                 if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
-                mFusedLocationClient.getLastLocation().addOnSuccessListener(MainActivity.this, location -> {
+                mFusedLocationClient.getLastLocation().addOnSuccessListener(CentersActivity.this, location -> {
                     if (location != null) {
-                        MainActivity.this.location = location;
+//                        MainActivity.this.location = location;
                         Log.d(TAG, " " + location);
 
                         new CBRestService().request(This.Static.QUERY_CENTER_URL, new CBRestService.Callback() {

@@ -12,13 +12,12 @@ import android.widget.TextView;
 import com.infy.stg.estquido.admin.R;
 import com.infy.stg.estquido.admin.app.This;
 import com.infy.stg.estquido.admin.ui.main.fragments.CenterFragment.OnListFragmentInteractionListener;
-import com.infy.stg.estquido.admin.ui.main.fragments.dummy.DummyContent.DummyItem;
 
 import java.util.List;
 import java.util.Map;
 
 /**
- * {@link RecyclerView.Adapter} that can display a {@link DummyItem} and makes a call to the
+ * {@link RecyclerView.Adapter} that can display a {@link Map} and makes a call to the
  * specified {@link OnListFragmentInteractionListener}.
  * TODO: Replace the implementation with code for your data type.
  */

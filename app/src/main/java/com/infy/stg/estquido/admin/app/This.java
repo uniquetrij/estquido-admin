@@ -6,7 +6,6 @@ import android.content.Context;
 import androidx.databinding.ObservableArrayList;
 import androidx.databinding.ObservableList;
 
-import com.infy.stg.estquido.admin.ui.main.MainActivity;
 import com.infy.stg.estquido.admin.ui.main.fragments.CenterRecyclerViewAdapter;
 
 import java.util.Map;
@@ -17,8 +16,6 @@ public class This {
 
     public static final AtomicReference<Context> CONTEXT = new AtomicReference<>();
     public static final AtomicReference<Application> APPLICATION = new AtomicReference<>();
-    public static final AtomicReference<MainActivity> MAIN_ACTIVITY = new AtomicReference<>();
-    public static final AtomicReference<MainActivity> LOCATION = new AtomicReference<>();
 
     public static final ObservableList<Map> CENTERS = new ObservableArrayList<>();
     public static CenterRecyclerViewAdapter K;
