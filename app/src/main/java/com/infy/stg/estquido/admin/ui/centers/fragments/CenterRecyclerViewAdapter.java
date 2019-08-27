@@ -3,6 +3,7 @@ package com.infy.stg.estquido.admin.ui.centers.fragments;
 import androidx.databinding.ObservableList;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,7 @@ import android.widget.Toast;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.infy.stg.estquido.admin.R;
 import com.infy.stg.estquido.admin.app.This;
+import com.infy.stg.estquido.admin.ui.centers.CentersActivity;
 import com.infy.stg.estquido.admin.ui.centers.fragments.CenterFragment.OnListFragmentInteractionListener;
 
 import java.util.Map;
@@ -76,6 +78,7 @@ public class CenterRecyclerViewAdapter extends RecyclerView.Adapter<CenterRecycl
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(TAG, "CBL " + "CLICK");
                 if (null != mListener) {
                     // Notify the active callbacks interface (the activity, if the
                     // fragment is attached to one) that an item has been selected.
@@ -95,6 +98,7 @@ public class CenterRecyclerViewAdapter extends RecyclerView.Adapter<CenterRecycl
             public boolean onLongClick(View view) {
                 try {
                     This.CBL_CENTERS.get().getDatabase().delete(This.CBL_CENTERS.get().getDatabase().getDocument("center_" + mValues.get(position).get("id")));
+                    CentersActivity.refresh();
                 } catch (CouchbaseLiteException e) {
                     e.printStackTrace();
                 }

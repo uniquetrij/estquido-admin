@@ -8,6 +8,7 @@ import android.os.Bundle;
 import com.android.volley.VolleyError;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.DataSource;
+import com.couchbase.lite.Expression;
 import com.couchbase.lite.QueryBuilder;
 import com.couchbase.lite.ReplicatorChange;
 import com.couchbase.lite.ReplicatorConfiguration;
@@ -26,6 +27,7 @@ import com.infy.stg.estquido.admin.R;
 import com.infy.stg.estquido.admin.app.This;
 import com.infy.stg.estquido.admin.app.services.CBLService;
 import com.infy.stg.estquido.admin.app.services.CBRestService;
+import com.infy.stg.estquido.admin.ui.buildings.BuildingsActivity;
 import com.infy.stg.estquido.admin.ui.centers.fragments.CenterFragment;
 
 import org.json.JSONException;
@@ -101,29 +103,43 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
             @Override
             public void onUpdate(ReplicatorChange change) {
                 Log.d(TAG, "CBL " + change.getStatus().getProgress());
-                try {
-                    ResultSet execute = QueryBuilder.select(SelectResult.all()).from(DataSource.database(cblCenters.getDatabase())).execute();
-                    This.CENTERS.clear();
-                    execute.allResults().forEach(result -> {
-                        This.CENTERS.add((Map<String, Object>) result.toMap().get("estquido"));
-                        Log.d(TAG, "CBL " + ((Map<String, Object>) result.toMap().get("estquido")).get("id"));
-                    });
-                    Log.d(TAG, "CBL " + This.CENTERS);
-
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
+                refresh();
             }
         });
     }
 
     @Override
     public void onListFragmentInteraction(Map map) {
-
+        Log.d(TAG, "CBL " + map);
+        This.CENTER.set((String) map.get("id"));
+        Intent intent = new Intent(getApplicationContext(), BuildingsActivity.class);
+        startActivity(intent);
     }
 
     public void fabAddCenterOnClick(View view) {
         Intent intent = new Intent(getApplicationContext(), AddCenterActivity.class);
         startActivity(intent);
+    }
+
+    public static void refresh(){
+        try {
+            ResultSet execute = QueryBuilder.select(SelectResult.all()).from(DataSource.database(This.CBL_CENTERS.get().getDatabase()))
+                    .where(Expression.property("type").equalTo(Expression.string("center"))).execute();
+            This.CENTERS.clear();
+            execute.allResults().forEach(result -> {
+                This.CENTERS.add((Map<String, Object>) result.toMap().get("estquido"));
+                Log.d(TAG, "CBL " + ((Map<String, Object>) result.toMap().get("estquido")).get("id"));
+            });
+            Log.d(TAG, "CBL " + This.CENTERS);
+
+        } catch (CouchbaseLiteException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        refresh();
     }
 }

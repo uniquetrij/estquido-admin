@@ -22,10 +22,13 @@ public class This {
     public static final AtomicReference<String> CENTER = new AtomicReference<>();
     public static final AtomicReference<Location> LOCATION = new AtomicReference<>();
     public static final AtomicReference<Geocoder> GEOCODER = new AtomicReference<>();
+    public static final AtomicReference<String> BUILDING = new AtomicReference<>();
 
     public static final AtomicReference<CBLService> CBL_CENTERS = new AtomicReference<>();
+    public static final AtomicReference<CBLService> CBL_DATABASE = new AtomicReference<>();
 
     public static final ObservableList<Map> CENTERS = new ObservableArrayList<>();
+    public static final ObservableList<Map.Entry<String, Object>> BUILDINGS = new ObservableArrayList<>();
 
 
     public static class Static {

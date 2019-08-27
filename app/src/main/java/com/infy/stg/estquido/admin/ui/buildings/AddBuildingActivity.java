@@ -1,4 +1,4 @@
-package com.infy.stg.estquido.admin.ui.centers;
+package com.infy.stg.estquido.admin.ui.buildings;
 
 import android.Manifest;
 import android.content.pm.PackageManager;
@@ -8,82 +8,57 @@ import android.os.Bundle;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.MutableDocument;
+import com.couchbase.lite.QueryBuilder;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
-import android.text.Editable;
-import android.text.TextWatcher;
 import android.util.Log;
 import android.view.View;
 import android.widget.ProgressBar;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.material.textfield.TextInputEditText;
 import com.infy.stg.estquido.admin.R;
 import com.infy.stg.estquido.admin.app.This;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class AddCenterActivity extends AppCompatActivity {
+public class AddBuildingActivity extends AppCompatActivity {
 
     private FusedLocationProviderClient mFusedLocationClient;
-    private Location mLocation;
-
 
     private TextInputEditText etLatitude;
     private TextInputEditText etLongitude;
-    private TextInputEditText etCity;
-    private TextInputEditText etLocation;
-    private TextInputEditText etCountry;
-    private TextInputEditText etCenterName;
-    private TextInputEditText etCenterID;
+    private TextInputEditText etAddress;
+    private Location mLocation;
     private Address mAddress;
-
+    private TextInputEditText etCenterID;
+    private TextInputEditText etCenterName;
+    private TextInputEditText etBuildingID;
+    private TextInputEditText etBuildingName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_add_center);
+        setContentView(R.layout.activity_add_building);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         etLatitude = findViewById(R.id.etLatitude);
         etLongitude = findViewById(R.id.etLongitude);
-        etCountry = findViewById(R.id.etCountry);
-        etCity = findViewById(R.id.etCity);
-        etLocation = findViewById(R.id.etLocation);
-
         etCenterID = findViewById(R.id.etCenterID);
         etCenterName = findViewById(R.id.etCenterName);
+        etAddress = findViewById(R.id.etAddress);
 
-        etCenterID.addTextChangedListener(new TextWatcher() {
-
-            @Override
-            public void onTextChanged(CharSequence arg0, int arg1, int arg2, int arg3) {
-
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence arg0, int arg1, int arg2,
-                                          int arg3) {
-            }
-
-            @Override
-            public void afterTextChanged(Editable et) {
-                String s = et.toString();
-                if (!s.equals(s.toUpperCase())) {
-                    s = s.toUpperCase();
-                    etCenterID.setText(s);
-                    etCenterID.setSelection(s.length());
-                }
-            }
-        });
+        etBuildingID = findViewById(R.id.etBuildingID);
+        etBuildingName = findViewById(R.id.etBuildingName);
 
         ProgressBar progressBar = findViewById(R.id.pbLoading);
         progressBar.setVisibility(View.VISIBLE);
@@ -96,19 +71,18 @@ public class AddCenterActivity extends AppCompatActivity {
                 if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
                     return;
                 }
-                mFusedLocationClient.getLastLocation().addOnSuccessListener(AddCenterActivity.this, location -> {
+                mFusedLocationClient.getLastLocation().addOnSuccessListener(AddBuildingActivity.this, location -> {
                     Log.d("LOCATION", location.toString());
                     if (location != null) {
                         mLocation = location;
                         etLatitude.setText(String.valueOf(location.getLatitude()));
                         etLongitude.setText(String.valueOf(location.getLongitude()));
-
+                        etCenterID.setText(This.CENTER.get());
+                        etCenterName.setText((String) This.CBL_DATABASE.get().getDatabase().getDocument("center_" + This.CENTER.get()).toMap().get("name"));
                         runOnUiThread(() -> {
                             try {
                                 mAddress = This.GEOCODER.get().getFromLocation(location.getLatitude(), location.getLongitude(), 1).get(0);
-                                etCountry.setText(mAddress.getCountryName());
-                                etCity.setText(mAddress.getLocality());
-                                etLocation.setText(mAddress.getSubLocality());
+                                etAddress.setText(mAddress.getAddressLine(0));
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -123,41 +97,29 @@ public class AddCenterActivity extends AppCompatActivity {
 
     }
 
-
-    public void fabAddCenterOnClick(View view) {
-        String id = etCenterID.getText().toString().trim();
+    public void fabAddBuildingOnClick(View view) {
+        String id = etBuildingID.getText().toString().trim();
         if (id.length() < 3) {
-            etCenterID.setError("Enter at least 3 characters");
-            return;
-        }
-        String name = etCenterName.getText().toString().trim();
-        if (name.length() < 4) {
-            etCenterName.setError("Enter at least 4 characters");
-            return;
-        }
-        if (This.CBL_CENTERS.get().getDatabase().getDocument("center_" + id) != null) {
-            etCenterID.setError("Center with this ID already exists");
+            etBuildingID.setError("Enter at least 2 characters");
             return;
         }
 
-        MutableDocument document = new MutableDocument("center_" + id);
-        document.setValue("id", id);
-        document.setValue("name", name);
-        document.setValue("type", "center");
-        document.setValue("locality", etLocation.getText().toString());
-        document.setValue("city", etCity.getText().toString());
-        document.setValue("country", etCountry.getText().toString());
+        MutableDocument document = This.CBL_DATABASE.get().getDatabase().getDocument("buildings_" + This.CENTER.get()).toMutable();
+
+        if (document.toMap().keySet().contains(id)) {
+            etBuildingID.setError("Building with this ID already exists");
+            return;
+        }
         Map<String, Object> map = new HashMap<>();
-        map.put("lat", mLocation.getLatitude());
-        map.put("lon", mLocation.getLongitude());
-        document.setValue("geo", map);
-
+        map.put("location", Arrays.asList(mLocation.getLatitude(), mLocation.getLongitude()));
+        document.setValue(id, map);
         try {
-            This.CBL_CENTERS.get().getDatabase().save(document);
+            This.CBL_DATABASE.get().getDatabase().save(document);
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         } finally {
             finish();
         }
+
     }
 }
