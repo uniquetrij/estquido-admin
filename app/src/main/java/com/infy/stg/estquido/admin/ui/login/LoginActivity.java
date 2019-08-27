@@ -1,6 +1,7 @@
 package com.infy.stg.estquido.admin.ui.login;
 
 import android.content.Intent;
+import android.location.Geocoder;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,7 +12,8 @@ import android.widget.EditText;
 import android.widget.ProgressBar;
 
 import com.infy.stg.estquido.admin.R;
-import com.infy.stg.estquido.admin.ui.main.CentersActivity;
+import com.infy.stg.estquido.admin.app.This;
+import com.infy.stg.estquido.admin.ui.centers.CentersActivity;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -19,6 +21,10 @@ public class LoginActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+
+        This.CONTEXT.set(getApplicationContext());
+        This.APPLICATION.set(getApplication());
+        This.GEOCODER.set(new Geocoder(getApplicationContext()));
 
         final EditText usernameEditText = findViewById(R.id.username);
         final EditText passwordEditText = findViewById(R.id.password);

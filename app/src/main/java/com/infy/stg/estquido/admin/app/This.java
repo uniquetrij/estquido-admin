@@ -2,11 +2,13 @@ package com.infy.stg.estquido.admin.app;
 
 import android.app.Application;
 import android.content.Context;
+import android.location.Geocoder;
+import android.location.Location;
 
 import androidx.databinding.ObservableArrayList;
 import androidx.databinding.ObservableList;
 
-import com.infy.stg.estquido.admin.ui.main.fragments.CenterRecyclerViewAdapter;
+import com.infy.stg.estquido.admin.app.services.CBLService;
 
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
@@ -17,8 +19,13 @@ public class This {
     public static final AtomicReference<Context> CONTEXT = new AtomicReference<>();
     public static final AtomicReference<Application> APPLICATION = new AtomicReference<>();
 
+    public static final AtomicReference<String> CENTER = new AtomicReference<>();
+    public static final AtomicReference<Location> LOCATION = new AtomicReference<>();
+    public static final AtomicReference<Geocoder> GEOCODER = new AtomicReference<>();
+
+    public static final AtomicReference<CBLService> CBL_CENTERS = new AtomicReference<>();
+
     public static final ObservableList<Map> CENTERS = new ObservableArrayList<>();
-    public static CenterRecyclerViewAdapter K;
 
 
     public static class Static {

@@ -9,5 +9,5 @@
     android:layout_marginLeft="16dp"
     android:layout_marginRight="16dp"
     app:layoutManager="LinearLayoutManager"
-    tools:context=".ui.main.fragments.CenterFragment"
+    tools:context=".ui.centers.fragments.CenterFragment"
     tools:listitem="@layout/fragment_center" />

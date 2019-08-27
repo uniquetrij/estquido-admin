@@ -1,6 +1,7 @@
-package com.infy.stg.estquido.admin.ui.main;
+package com.infy.stg.estquido.admin.ui.centers;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 
@@ -14,8 +15,6 @@ import com.couchbase.lite.ResultSet;
 import com.couchbase.lite.SelectResult;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -27,7 +26,7 @@ import com.infy.stg.estquido.admin.R;
 import com.infy.stg.estquido.admin.app.This;
 import com.infy.stg.estquido.admin.app.services.CBLService;
 import com.infy.stg.estquido.admin.app.services.CBRestService;
-import com.infy.stg.estquido.admin.ui.main.fragments.CenterFragment;
+import com.infy.stg.estquido.admin.ui.centers.fragments.CenterFragment;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -36,35 +35,24 @@ import java.util.Map;
 import java.util.Timer;
 import java.util.TimerTask;
 
-public class CentersActivity extends AppCompatActivity  implements CenterFragment.OnListFragmentInteractionListener {
+public class CentersActivity extends AppCompatActivity implements CenterFragment.OnListFragmentInteractionListener {
 
     private static final String TAG = CentersActivity.class.getName();
     private FusedLocationProviderClient mFusedLocationClient;
-    private String center;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_centers);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
 
         This.CONTEXT.set(getApplicationContext());
         This.APPLICATION.set(getApplication());
-//        This.MAIN_ACTIVITY.set(this);
 
         if (savedInstanceState == null) {
             getSupportFragmentManager().beginTransaction()
-                    .replace(R.id.container, new CenterFragment())
+                    .replace(R.id.containerCentersFragment, new CenterFragment())
                     .commitNow();
         }
 
@@ -77,22 +65,22 @@ public class CentersActivity extends AppCompatActivity  implements CenterFragmen
                     return;
                 }
                 mFusedLocationClient.getLastLocation().addOnSuccessListener(CentersActivity.this, location -> {
+                    Log.d("LOCATION", location.toString());
                     if (location != null) {
-//                        MainActivity.this.location = location;
-                        Log.d(TAG, " " + location);
-
+                        This.LOCATION.set(location);
+                        Log.d("LOCATION", location.toString());
                         new CBRestService().request(This.Static.QUERY_CENTER_URL, new CBRestService.Callback() {
                             @Override
                             public void onError(VolleyError error) {
-                                center = null;
+                                This.CENTER.set(null);
                             }
 
                             @Override
                             public void onResponse(JSONObject response) {
                                 try {
-                                    center = response.getJSONArray("hits").getJSONObject(0).getString("id").replace("center_", "");
+                                    This.CENTER.set(response.getJSONArray("hits").getJSONObject(0).getString("id").replace("center_", ""));
                                 } catch (JSONException | ArrayIndexOutOfBoundsException e) {
-                                    center = null;
+                                    This.CENTER.set(null);
                                 }
                             }
                         }, CBRestService.centerRequest(location));
@@ -103,6 +91,7 @@ public class CentersActivity extends AppCompatActivity  implements CenterFragmen
         }, 0, 1000);
 
         CBLService cblCenters = new CBLService(This.Static.COUCHBASE_CENTERS_URL, This.Static.COUCHBASE_DB, This.Static.COUCHBASE_USER, This.Static.COUCHBASE_PASS);
+        This.CBL_CENTERS.set(cblCenters);
         cblCenters.async(ReplicatorConfiguration.ReplicatorType.PUSH_AND_PULL, new CBLService.Callback() {
             @Override
             public void onError(ReplicatorChange change) {
@@ -131,5 +120,10 @@ public class CentersActivity extends AppCompatActivity  implements CenterFragmen
     @Override
     public void onListFragmentInteraction(Map map) {
 
+    }
+
+    public void fabAddCenterOnClick(View view) {
+        Intent intent = new Intent(getApplicationContext(), AddCenterActivity.class);
+        startActivity(intent);
     }
 }
