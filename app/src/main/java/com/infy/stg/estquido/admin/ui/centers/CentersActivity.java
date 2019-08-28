@@ -82,6 +82,8 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
                             public void onResponse(JSONObject response) {
                                 try {
                                     This.GPS_CENTER.set(response.getJSONArray("hits").getJSONObject(0).getString("id").replace("center_", ""));
+                                    This.CENTERS.add(0, null);
+                                    This.CENTERS.remove(0);
                                 } catch (JSONException | ArrayIndexOutOfBoundsException e) {
                                     This.GPS_CENTER.set(null);
                                 }

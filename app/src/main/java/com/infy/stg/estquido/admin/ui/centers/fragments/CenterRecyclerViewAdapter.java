@@ -1,8 +1,10 @@
 package com.infy.stg.estquido.admin.ui.centers.fragments;
 
+import androidx.cardview.widget.CardView;
 import androidx.databinding.ObservableList;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.graphics.Color;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -75,6 +77,11 @@ public class CenterRecyclerViewAdapter extends RecyclerView.Adapter<CenterRecycl
         holder.tvCenterID.setText((String) mValues.get(position).get("id"));
         holder.tvCity.setText((String) mValues.get(position).get("city"));
 
+        if (((String) mValues.get(position).get("id")).equalsIgnoreCase(This.GPS_CENTER.get())) {
+            holder.cardCenter.setCardBackgroundColor(Color.parseColor("#defde0"));
+        }
+
+
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -86,7 +93,7 @@ public class CenterRecyclerViewAdapter extends RecyclerView.Adapter<CenterRecycl
                 }
             }
         });
-        holder.ivCentersDelete.setOnClickListener(view -> Toast.makeText(This.CONTEXT.get(), "Long press to delete",Toast.LENGTH_SHORT).show());
+        holder.ivCentersDelete.setOnClickListener(view -> Toast.makeText(This.CONTEXT.get(), "Long press to delete", Toast.LENGTH_SHORT).show());
 
         holder.ivCentersDelete.setOnLongClickListener(view -> {
             try {
@@ -110,6 +117,7 @@ public class CenterRecyclerViewAdapter extends RecyclerView.Adapter<CenterRecycl
         public final TextView tvCenterName;
         private final TextView tvCenterID;
         private final ImageView ivCentersDelete;
+        private final CardView cardCenter;
         public Map mItem;
 
         public ViewHolder(View view) {
@@ -120,6 +128,7 @@ public class CenterRecyclerViewAdapter extends RecyclerView.Adapter<CenterRecycl
             tvCity = view.findViewById(R.id.tvCity);
 //            tvCity = view.findViewById(R.id.tv);
             ivCentersDelete = view.findViewById(R.id.ivCentersDelete);
+            cardCenter = view.findViewById(R.id.cardCenter);
         }
 
         @Override
