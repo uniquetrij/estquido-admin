@@ -1,20 +1,24 @@
 package com.infy.stg.estquido.admin.ui.buildings.fragments;
 
-import androidx.databinding.ObservableList;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import androidx.databinding.ObservableList;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.MutableDocument;
 import com.infy.stg.estquido.admin.R;
+import com.infy.stg.estquido.admin.app.This;
+import com.infy.stg.estquido.admin.ui.buildings.BuildingsActivity;
 import com.infy.stg.estquido.admin.ui.buildings.fragments.BuildingFragment.OnListFragmentInteractionListener;
-import com.infy.stg.estquido.admin.ui.centers.fragments.CenterRecyclerViewAdapter;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 /**
  * {@link RecyclerView.Adapter} that can display a {@link Map.Entry} and makes a call to the
@@ -67,9 +71,10 @@ public class BuildingRecyclerViewAdapter extends RecyclerView.Adapter<BuildingRe
     @Override
     public void onBindViewHolder(final ViewHolder holder, int position) {
         holder.mItem = mValues.get(position);
-
-        holder.mIdView.setText(mValues.get(position).getKey());
-        holder.mContentView.setText(mValues.get(position).getValue().toString());
+        holder.tvBuildingID.setText(mValues.get(position).getKey());
+        holder.tvBuildingLatitude.setText(((List<Double>) ((Map<String, Object>) (holder.mItem.getValue())).get("location")).get(0) + "");
+        holder.tvBuildingLongitude.setText(((List<Double>) ((Map<String, Object>) (holder.mItem.getValue())).get("location")).get(1) + "");
+        holder.tvBuildingName.setText((((Map<String, Object>) (holder.mItem.getValue())).getOrDefault("name", holder.tvBuildingID.getText()))+ "");
 
         holder.mView.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -81,6 +86,21 @@ public class BuildingRecyclerViewAdapter extends RecyclerView.Adapter<BuildingRe
                 }
             }
         });
+
+        holder.ivBuildingDelete.setOnClickListener(view -> Toast.makeText(This.CONTEXT.get(), "Long press to delete", Toast.LENGTH_SHORT).show());
+
+        holder.ivBuildingDelete.setOnLongClickListener(view -> {
+            MutableDocument document = This.CBL_DATABASE.get().getDatabase().getDocument("buildings_" + This.CENTER.get()).toMutable();
+            document.remove(holder.mItem.getKey());
+            try {
+                This.CBL_DATABASE.get().getDatabase().save(document);
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
+            } finally {
+                BuildingsActivity.refresh();
+            }
+            return false;
+        });
     }
 
     @Override
@@ -90,20 +110,26 @@ public class BuildingRecyclerViewAdapter extends RecyclerView.Adapter<BuildingRe
 
     public class ViewHolder extends RecyclerView.ViewHolder {
         public final View mView;
-        public final TextView mIdView;
-        public final TextView mContentView;
+        public final TextView tvBuildingID;
+        public final TextView tvBuildingName;
+        private final TextView tvBuildingLatitude;
+        private final TextView tvBuildingLongitude;
+        private final ImageView ivBuildingDelete;
         public Map.Entry<String, Object> mItem;
 
         public ViewHolder(View view) {
             super(view);
             mView = view;
-            mIdView = (TextView) view.findViewById(R.id.item_number);
-            mContentView = (TextView) view.findViewById(R.id.content);
+            tvBuildingID = view.findViewById(R.id.tvBuildingID);
+            tvBuildingName = view.findViewById(R.id.tvBuildingName);
+            tvBuildingLatitude = view.findViewById(R.id.tvBuildingLatitude);
+            tvBuildingLongitude = view.findViewById(R.id.tvBuildingLongitude);
+            ivBuildingDelete = view.findViewById(R.id.ivBuildingDelete);
         }
 
         @Override
         public String toString() {
-            return super.toString() + " '" + mContentView.getText() + "'";
+            return super.toString() + " '" + tvBuildingName.getText() + "'";
         }
     }
 }

@@ -86,24 +86,16 @@ public class CenterRecyclerViewAdapter extends RecyclerView.Adapter<CenterRecycl
                 }
             }
         });
-        holder.ivCentersDelete.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Toast.makeText(This.CONTEXT.get(), "Long press to delete",Toast.LENGTH_SHORT).show();
-            }
-        });
+        holder.ivCentersDelete.setOnClickListener(view -> Toast.makeText(This.CONTEXT.get(), "Long press to delete",Toast.LENGTH_SHORT).show());
 
-        holder.ivCentersDelete.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                try {
-                    This.CBL_CENTERS.get().getDatabase().delete(This.CBL_CENTERS.get().getDatabase().getDocument("center_" + mValues.get(position).get("id")));
-                    CentersActivity.refresh();
-                } catch (CouchbaseLiteException e) {
-                    e.printStackTrace();
-                }
-                return false;
+        holder.ivCentersDelete.setOnLongClickListener(view -> {
+            try {
+                This.CBL_CENTERS.get().getDatabase().delete(This.CBL_CENTERS.get().getDatabase().getDocument("center_" + mValues.get(position).get("id")));
+                CentersActivity.refresh();
+            } catch (CouchbaseLiteException e) {
+                e.printStackTrace();
             }
+            return false;
         });
     }
 

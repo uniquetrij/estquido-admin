@@ -11,12 +11,20 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
+            android:name=".ui.mapper.MapperActivity"
+            android:label="@string/title_activity_qrscanner"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
+            android:name=".ui.qr.QRScannerActivity"
+            android:label="@string/title_activity_qrscanner"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity
             android:name=".ui.buildings.AddBuildingActivity"
             android:label="@string/title_activity_add_building"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
+            android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ui.buildings.BuildingsActivity"
-            android:label="@string/title_activity_main"
+            android:label="@string/title_activity_Buildings"
             android:theme="@style/AppTheme.NoActionBar" />
         <activity
             android:name=".ui.centers.CentersActivity"
@@ -35,10 +43,17 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="required" />
     </application>
+
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.CAMERA" />
+
+    <uses-feature android:name="android.hardware.camera.ar" />
 
 </manifest>

@@ -10,6 +10,7 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.DataSource;
 import com.couchbase.lite.Expression;
 import com.couchbase.lite.QueryBuilder;
+import com.couchbase.lite.Replicator;
 import com.couchbase.lite.ReplicatorChange;
 import com.couchbase.lite.ReplicatorConfiguration;
 import com.couchbase.lite.ResultSet;
@@ -41,6 +42,7 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
 
     private static final String TAG = CentersActivity.class.getName();
     private FusedLocationProviderClient mFusedLocationClient;
+//    private Replicator mReplicator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,22 +69,21 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
                     return;
                 }
                 mFusedLocationClient.getLastLocation().addOnSuccessListener(CentersActivity.this, location -> {
-                    Log.d("LOCATION", location.toString());
+                    Log.d("LOCATION", "DEFAULT: " + location);
                     if (location != null) {
                         This.LOCATION.set(location);
-                        Log.d("LOCATION", location.toString());
                         new CBRestService().request(This.Static.QUERY_CENTER_URL, new CBRestService.Callback() {
                             @Override
                             public void onError(VolleyError error) {
-                                This.CENTER.set(null);
+                                This.GPS_CENTER.set(null);
                             }
 
                             @Override
                             public void onResponse(JSONObject response) {
                                 try {
-                                    This.CENTER.set(response.getJSONArray("hits").getJSONObject(0).getString("id").replace("center_", ""));
+                                    This.GPS_CENTER.set(response.getJSONArray("hits").getJSONObject(0).getString("id").replace("center_", ""));
                                 } catch (JSONException | ArrayIndexOutOfBoundsException e) {
-                                    This.CENTER.set(null);
+                                    This.GPS_CENTER.set(null);
                                 }
                             }
                         }, CBRestService.centerRequest(location));
@@ -92,9 +93,11 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
             }
         }, 0, 1000);
 
-        CBLService cblCenters = new CBLService(This.Static.COUCHBASE_CENTERS_URL, This.Static.COUCHBASE_DB, This.Static.COUCHBASE_USER, This.Static.COUCHBASE_PASS);
-        This.CBL_CENTERS.set(cblCenters);
-        cblCenters.async(ReplicatorConfiguration.ReplicatorType.PUSH_AND_PULL, new CBLService.Callback() {
+        if (This.CBL_CENTERS.get() == null) {
+            This.CBL_CENTERS.set(new CBLService(This.Static.COUCHBASE_CENTERS_URL, This.Static.COUCHBASE_CENTERS, This.Static.COUCHBASE_USER, This.Static.COUCHBASE_PASS));
+        }
+        CBLService cblCenters = This.CBL_CENTERS.get();
+        Replicator mReplicator = cblCenters.async(ReplicatorConfiguration.ReplicatorType.PUSH_AND_PULL, new CBLService.Callback() {
             @Override
             public void onError(ReplicatorChange change) {
 
@@ -106,7 +109,9 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
                 refresh();
             }
         });
+        Log.d(TAG, "REPLICATOR " + "START");
     }
+
 
     @Override
     public void onListFragmentInteraction(Map map) {
@@ -114,6 +119,9 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
         This.CENTER.set((String) map.get("id"));
         Intent intent = new Intent(getApplicationContext(), BuildingsActivity.class);
         startActivity(intent);
+//        mReplicator.stop();
+        Log.d(TAG, "REPLICATOR " + "STOP");
+
     }
 
     public void fabAddCenterOnClick(View view) {
@@ -121,14 +129,14 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
         startActivity(intent);
     }
 
-    public static void refresh(){
+    public static void refresh() {
         try {
             ResultSet execute = QueryBuilder.select(SelectResult.all()).from(DataSource.database(This.CBL_CENTERS.get().getDatabase()))
                     .where(Expression.property("type").equalTo(Expression.string("center"))).execute();
             This.CENTERS.clear();
             execute.allResults().forEach(result -> {
-                This.CENTERS.add((Map<String, Object>) result.toMap().get("estquido"));
-                Log.d(TAG, "CBL " + ((Map<String, Object>) result.toMap().get("estquido")).get("id"));
+                This.CENTERS.add((Map<String, Object>) result.toMap().get("estquido-centers"));
+                Log.d(TAG, "CBL " + ((Map<String, Object>) result.toMap().get("estquido-centers")).get("id"));
             });
             Log.d(TAG, "CBL " + This.CENTERS);
 
@@ -140,6 +148,22 @@ public class CentersActivity extends AppCompatActivity implements CenterFragment
     @Override
     protected void onResume() {
         super.onResume();
+//        mReplicator.start();
+        Log.d(TAG, "REPLICATOR " + "START");
         refresh();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+//        mReplicator.stop();
+        Log.d(TAG, "REPLICATOR " + "STOP");
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+//        mReplicator.stop();
+        Log.d(TAG, "REPLICATOR " + "STOP");
     }
 }

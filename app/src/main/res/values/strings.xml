@@ -15,6 +15,7 @@
     <string name="longitude">Longitude</string>
     <string name="latitude">Latitude</string>
     <string name="location">Location</string>
-    <string name="title_activity_main">MainActivity</string>
-    <string name="title_activity_add_building">AddBuildingActivity</string>
+    <string name="title_activity_Buildings">Buildings</string>
+    <string name="title_activity_add_building">Add Building</string>
+    <string name="title_activity_qrscanner">QR Scanner</string>
 </resources>

@@ -8,7 +8,6 @@ import android.os.Bundle;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.MutableDocument;
-import com.couchbase.lite.QueryBuilder;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 
@@ -36,7 +35,7 @@ public class AddBuildingActivity extends AppCompatActivity {
 
     private TextInputEditText etLatitude;
     private TextInputEditText etLongitude;
-    private TextInputEditText etAddress;
+    private TextInputEditText etBuildingAddress;
     private Location mLocation;
     private Address mAddress;
     private TextInputEditText etCenterID;
@@ -55,7 +54,7 @@ public class AddBuildingActivity extends AppCompatActivity {
         etLongitude = findViewById(R.id.etLongitude);
         etCenterID = findViewById(R.id.etCenterID);
         etCenterName = findViewById(R.id.etCenterName);
-        etAddress = findViewById(R.id.etAddress);
+        etBuildingAddress = findViewById(R.id.etBuildingAddress);
 
         etBuildingID = findViewById(R.id.etBuildingID);
         etBuildingName = findViewById(R.id.etBuildingName);
@@ -78,11 +77,11 @@ public class AddBuildingActivity extends AppCompatActivity {
                         etLatitude.setText(String.valueOf(location.getLatitude()));
                         etLongitude.setText(String.valueOf(location.getLongitude()));
                         etCenterID.setText(This.CENTER.get());
-                        etCenterName.setText((String) This.CBL_DATABASE.get().getDatabase().getDocument("center_" + This.CENTER.get()).toMap().get("name"));
+                        etCenterName.setText((String) This.CBL_CENTERS.get().getDatabase().getDocument("center_" + This.CENTER.get()).toMap().get("name"));
                         runOnUiThread(() -> {
                             try {
                                 mAddress = This.GEOCODER.get().getFromLocation(location.getLatitude(), location.getLongitude(), 1).get(0);
-                                etAddress.setText(mAddress.getAddressLine(0));
+                                etBuildingAddress.setText(mAddress.getAddressLine(0));
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }
@@ -93,8 +92,6 @@ public class AddBuildingActivity extends AppCompatActivity {
                 });
             }
         }, 0, 1000);
-
-
     }
 
     public void fabAddBuildingOnClick(View view) {
@@ -112,6 +109,8 @@ public class AddBuildingActivity extends AppCompatActivity {
         }
         Map<String, Object> map = new HashMap<>();
         map.put("location", Arrays.asList(mLocation.getLatitude(), mLocation.getLongitude()));
+        map.put("name", etBuildingName.getText().toString().trim());
+        map.put("address", etBuildingAddress.getText().toString().trim());
         document.setValue(id, map);
         try {
             This.CBL_DATABASE.get().getDatabase().save(document);
