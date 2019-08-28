@@ -63,7 +63,8 @@ public class MapperActivity extends AppCompatActivity {
     private WayPoint selectedWayPoint;
 
     private int wayPointCounter = -1;
-    private MutableDocument document;
+    private MutableDocument buildingDoc;
+    private MutableDocument spotsDoc;
     private Quaternion mCamRotation;
     private Anchor anchor = null;
     private Vector3 prevCamPosition = null;
@@ -97,19 +98,15 @@ public class MapperActivity extends AppCompatActivity {
                 Log.d(TAG, "CBL " + change.getStatus().getProgress());
                 try {
                     Log.d(TAG, "CBL " + cblDatabase.getDatabase().getDocument("building_" + This.CENTER.get() + "_" + This.BUILDING.get()).toMutable().toMap());
-                }
-                catch (Exception ex){
-                    Log.d(TAG, "CBL " + ex.toString());
-                }
-                finally {
+                    Log.d(TAG, "CBL " + cblDatabase.getDatabase().getDocument("spots_" + This.CENTER.get()).toMutable().toMap());
                     initCBL();
+                } catch (Exception ex) {
+                    Log.d(TAG, "CBL " + ex.toString());
                 }
 
             }
-        }, "building_" + This.CENTER.get() + "_" + This.BUILDING.get());
+        }, "building_" + This.CENTER.get() + "_" + This.BUILDING.get(), "spots_" + This.CENTER.get());
         Log.d(TAG, "REPLICATOR " + "START");
-
-        initCBL();
 
         mArFragment = (ArFragment) getSupportFragmentManager().findFragmentById(R.id.checkpoints_fragment);
 
@@ -140,19 +137,20 @@ public class MapperActivity extends AppCompatActivity {
         try {
 
             Document doc = This.CBL_DATABASE.get().getDatabase().getDocument("building_" + This.CENTER.get() + "_" + This.BUILDING.get());
-
             if (doc == null) {
                 Log.d("document_ created", "");
-                document = new MutableDocument("building_" + This.CENTER.get() + "_" + This.BUILDING.get());
-                document.setValue("WayPoints", new ArrayList<Map<String, Object>>());
-                document.setValue("WayPointIDs", new ArrayList<Integer>(Arrays.asList(0)));
-                document.setValue("CheckPoints", new ArrayList<Map<String, Integer>>());
-                This.CBL_DATABASE.get().getDatabase().save(document);
+                spotsDoc = new MutableDocument("spots_" + This.CENTER.get());
+                buildingDoc = new MutableDocument("building_" + This.CENTER.get() + "_" + This.BUILDING.get());
+                buildingDoc.setValue("WayPoints", new ArrayList<Map<String, Object>>());
+                buildingDoc.setValue("WayPointIDs", new ArrayList<Integer>(Arrays.asList(0)));
+                buildingDoc.setValue("CheckPoints", new ArrayList<Map<String, Integer>>());
+                This.CBL_DATABASE.get().getDatabase().save(buildingDoc);
             } else {
-                document = doc.toMutable();
+                spotsDoc = This.CBL_DATABASE.get().getDatabase().getDocument("spots_" + This.CENTER.get()).toMutable();
+                buildingDoc = doc.toMutable();
                 Log.d("document_ loaded", "");
                 Map<String, WayPoint> newWayPoints = Collections.synchronizedMap(new LinkedHashMap<>());
-                ((MutableArray) document.getValue("WayPoints")).toList().stream().forEachOrdered(m -> {
+                ((MutableArray) buildingDoc.getValue("WayPoints")).toList().stream().forEachOrdered(m -> {
                     Map<String, Map<String, Object>> map = (Map<String, Map<String, Object>>) m;
                     Map<String, Object> wpMap = map.values().stream().findFirst().get();
                     WayPoint wayPoint = new WayPoint(((Long) wpMap.get("id")).intValue(), new Vector3(((Number) wpMap.get("x")).floatValue(), ((Number) wpMap.get("y")).floatValue(), ((Number) wpMap.get("z")).floatValue()), (String) wpMap.get("wayPointName"), (boolean) wpMap.get("isCheckpoint"));
@@ -160,9 +158,9 @@ public class MapperActivity extends AppCompatActivity {
                     mWayPoints.add(wayPoint);
                     newWayPoints.put(wayPoint.getWayPointName(), wayPoint);
                 });
-                wayPointCounter = ((MutableArray) document.getValue("WayPointIDs")).toList().stream().mapToInt(value -> ((Long) value).intValue()).max().getAsInt();
+                wayPointCounter = ((MutableArray) buildingDoc.getValue("WayPointIDs")).toList().stream().mapToInt(value -> ((Long) value).intValue()).max().getAsInt();
 
-                ((MutableArray) document.getValue("WayPoints")).toList().stream().forEachOrdered(m -> {
+                ((MutableArray) buildingDoc.getValue("WayPoints")).toList().stream().forEachOrdered(m -> {
                     Log.d("m", m.toString());
                     Map<String, Map<String, Object>> map = (Map<String, Map<String, Object>>) m;
                     Map<String, Object> wpMap = map.values().stream().findFirst().get();
@@ -364,7 +362,10 @@ public class MapperActivity extends AppCompatActivity {
 
         mWayPoints.stream().forEachOrdered(wayPoint -> {
             if (wayPoint.getIsCheckpoint()) {
+                Map<String, String> spots = new HashMap<>();
                 checkpointArray.put(wayPoint.getWayPointName(), wayPoint.getId());
+                spots.put("building", This.BUILDING.get());
+                spotsDoc.setValue(wayPoint.getWayPointName(), spots);
             }
         });
 
@@ -379,16 +380,18 @@ public class MapperActivity extends AppCompatActivity {
 
         });
 
-        document.setValue("location", This.BUILDING_LOCATION.get());
-        document.setValue("WayPoints", wpArray);
-        document.setValue("WayPointIDs", idArray);
-        document.setValue("CheckPoints", checkpointArray);
+        buildingDoc.setValue("location", This.BUILDING_LOCATION.get());
+        buildingDoc.setValue("WayPoints", wpArray);
+        buildingDoc.setValue("WayPointIDs", idArray);
+        buildingDoc.setValue("CheckPoints", checkpointArray);
+
 
         Log.d("db1 WayPoints", wpArray.toString());
         Log.d("db1 WayPointIDs", idArray.toString());
         Log.d("db1 checkpoints", checkpointArray.toString());
         try {
-            This.CBL_DATABASE.get().getDatabase().save(document);
+            This.CBL_DATABASE.get().getDatabase().save(buildingDoc);
+            This.CBL_DATABASE.get().getDatabase().save(spotsDoc);
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         }
@@ -397,10 +400,10 @@ public class MapperActivity extends AppCompatActivity {
     public void reset(View view) {
         mArFragment.getArSceneView().getSession().getAllAnchors().forEach(anchor -> anchor.detach());
         mWayPoints.clear();
-        document.setValue("WayPoints", new ArrayList<Map<String, Object>>());
-        document.setValue("WayPointIDs", new ArrayList<>(Arrays.asList(0)));
+        buildingDoc.setValue("WayPoints", new ArrayList<Map<String, Object>>());
+        buildingDoc.setValue("WayPointIDs", new ArrayList<>(Arrays.asList(0)));
         try {
-            This.CBL_DATABASE.get().getDatabase().save(document);
+            This.CBL_DATABASE.get().getDatabase().save(buildingDoc);
         } catch (CouchbaseLiteException e) {
             e.printStackTrace();
         }
