@@ -99,9 +99,22 @@ public class MapperActivity extends AppCompatActivity {
                 try {
                     Log.d(TAG, "CBL " + cblDatabase.getDatabase().getDocument("building_" + This.CENTER.get() + "_" + This.BUILDING.get()).toMutable().toMap());
                     Log.d(TAG, "CBL " + cblDatabase.getDatabase().getDocument("spots_" + This.CENTER.get()).toMutable().toMap());
-                    initCBL();
+                    if (buildingDoc == null) {
+                        initCBL();
+                    }
                 } catch (Exception ex) {
                     Log.d(TAG, "CBL " + ex.toString());
+                    spotsDoc = new MutableDocument("spots_" + This.CENTER.get());
+                    buildingDoc = new MutableDocument("building_" + This.CENTER.get() + "_" + This.BUILDING.get());
+                    buildingDoc.setValue("WayPoints", new ArrayList<Map<String, Object>>());
+                    buildingDoc.setValue("WayPointIDs", new ArrayList<Integer>(Arrays.asList(0)));
+                    buildingDoc.setValue("CheckPoints", new ArrayList<Map<String, Integer>>());
+                    try {
+                        This.CBL_DATABASE.get().getDatabase().save(buildingDoc);
+                        This.CBL_DATABASE.get().getDatabase().save(spotsDoc);
+                    } catch (CouchbaseLiteException e) {
+                        e.printStackTrace();
+                    }
                 }
 
             }
@@ -128,7 +141,6 @@ public class MapperActivity extends AppCompatActivity {
                 prevCamPosition = mCamPosition;
                 prevCamRotation = mCamRotation;
             }
-
         });
     }
 
@@ -145,6 +157,7 @@ public class MapperActivity extends AppCompatActivity {
                 buildingDoc.setValue("WayPointIDs", new ArrayList<Integer>(Arrays.asList(0)));
                 buildingDoc.setValue("CheckPoints", new ArrayList<Map<String, Integer>>());
                 This.CBL_DATABASE.get().getDatabase().save(buildingDoc);
+                This.CBL_DATABASE.get().getDatabase().save(spotsDoc);
             } else {
                 spotsDoc = This.CBL_DATABASE.get().getDatabase().getDocument("spots_" + This.CENTER.get()).toMutable();
                 buildingDoc = doc.toMutable();

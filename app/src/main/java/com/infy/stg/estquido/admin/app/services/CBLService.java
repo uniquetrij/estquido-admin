@@ -47,7 +47,6 @@ public class CBLService {
 
         Database database = null;
         try {
-            DatabaseConfiguration dbConfig = new DatabaseConfiguration(This.CONTEXT.get());
             database = new Database(dbname, new DatabaseConfiguration(This.CONTEXT.get()));
 
         } catch (CouchbaseLiteException e) {
