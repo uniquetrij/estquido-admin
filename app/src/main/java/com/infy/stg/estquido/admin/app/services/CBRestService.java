@@ -63,7 +63,7 @@ public class CBRestService {
                     "      \"lat\": " + location.getLatitude() + ",\n" +
                     "      \"lon\": " + location.getLongitude() + "\n" +
                     "     },\n" +
-                    "      \"distance\": \"100000mi\",\n" +
+                    "      \"distance\": \"3mi\",\n" +
                     "      \"field\": \"geo\"\n" +
                     "    },\n" +
                     "  \"sort\": [\n" +
